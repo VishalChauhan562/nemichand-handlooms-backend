@@ -1,0 +1,702 @@
+--- Start of Cart.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany
+} from "sequelize-typescript";
+import  User  from "./User";
+import  CartItem  from "./CartItem";
+
+@Table({
+  tableName: "carts",
+  timestamps: true,
+})
+export default class Cart extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  user_id!: number;
+
+  @BelongsTo(() => User)
+  user!: User;
+
+  @HasMany(() => CartItem)
+  items!: CartItem[];
+
+  // Helper methods
+  async addItem(productId: number, quantity: number = 1): Promise<void> {
+    const existingItem = this.items.find(
+      (item) => item.product_id === productId
+    );
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      await CartItem.create({
+        cart_id: this.id,
+        product_id: productId,
+        quantity,
+      });
+    }
+    await this.save();
+  }
+
+  async removeItem(productId: number): Promise<void> {
+    await CartItem.destroy({
+      where: { cart_id: this.id, product_id: productId },
+    });
+    await this.save();
+  }
+}
+
+--- End of Cart.ts ---
+
+--- Start of CartItem.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+} from "sequelize-typescript";
+import  Cart  from "./Cart";
+
+// CartItem.ts
+@Table({ tableName: "cart_items", timestamps: true })
+export default class CartItem extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => Cart)
+  @Column(DataType.INTEGER)
+  cart_id!: number;
+
+  @Column(DataType.INTEGER)
+  product_id!: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    validate: { min: 1 },
+  })
+  quantity!: number;
+
+  @BelongsTo(() => Cart)
+  cart!: Cart;
+}
+
+--- End of CartItem.ts ---
+
+--- Start of Category.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  HasMany,
+} from 'sequelize-typescript';
+import  Product  from './Product';
+
+@Table({
+  tableName: 'categories',
+  timestamps: true,
+})
+export default class Category extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  name!: string;
+
+  @HasMany(() => Product)
+  products!: Product[];
+}
+
+
+--- End of Category.ts ---
+
+--- Start of Order.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+  HasOne,
+  BeforeSave,
+} from "sequelize-typescript";
+import bcrypt from "bcrypt";
+import User from "./User";
+import OrderItem from "./OrderItem";
+import Payment from "./Payment";
+import Shipment from "./Shipment";
+
+@Table({
+  tableName: "orders",
+  timestamps: true,
+})
+export default class Order extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  user_id!: number;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  order_date!: Date;
+
+  @Column({
+    type: DataType.DECIMAL(10, 2),
+    allowNull: false,
+  })
+  total_price!: number;
+
+  @BelongsTo(() => User)
+  user!: User;
+
+  @HasMany(() => OrderItem)
+  orderItems!: OrderItem[];
+
+  @HasOne(() => Payment)
+  payment!: Payment;
+
+  @HasOne(() => Shipment)
+  shipment!: Shipment;
+}
+
+--- End of Order.ts ---
+
+--- Start of OrderItem.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+  HasOne,
+  BeforeSave,
+} from "sequelize-typescript";
+import  Order  from "./Order";
+
+@Table({ tableName: "order_items", timestamps: true })
+export default class OrderItem extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => Order)
+  @Column(DataType.INTEGER)
+  order_id!: number;
+
+  @Column(DataType.INTEGER)
+  product_id!: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    validate: { min: 1 },
+  })
+  quantity!: number;
+
+  @Column({
+    type: DataType.DECIMAL(10, 2),
+    allowNull: false,
+  })
+  price!: number;
+
+  @BelongsTo(() => Order)
+  order!: Order;
+}
+
+--- End of OrderItem.ts ---
+
+--- Start of Payment.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+  HasOne,
+  BeforeSave,
+} from "sequelize-typescript";
+import Order  from "./Order";
+
+@Table({ tableName: "payments", timestamps: true })
+export default class Payment extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => Order)
+  @Column(DataType.INTEGER)
+  order_id!: number;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  payment_date!: Date;
+
+  @Column({
+    type: DataType.ENUM("CARD", "UPI", "NETBANKING", "CASH"),
+    allowNull: false,
+  })
+  payment_method!: string;
+
+  @Column({
+    type: DataType.DECIMAL(10, 2),
+    allowNull: false,
+  })
+  amount!: number;
+
+  @BelongsTo(() => Order)
+  order!: Order;
+}
+
+--- End of Payment.ts ---
+
+--- Start of Product.ts ---
+// src/models/Product.ts
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  BeforeCreate,
+  BeforeUpdate
+} from "sequelize-typescript";
+import Category from "./Category";
+import OrderItem from "./OrderItem";
+
+@Table({ tableName: "products", timestamps: true })
+export default class Product extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+    unique: true,
+  })
+  sku!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  name!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+  })
+  description!: string;
+
+  @Column({
+    type: DataType.DECIMAL(10, 2),
+    allowNull: false,
+  })
+  price!: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  stock!: number;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  is_active!: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_featured!: boolean;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  image_url!: string;
+
+  @ForeignKey(() => Category)
+  @Column(DataType.INTEGER)
+  category_id!: number;
+
+  @BelongsTo(() => Category)
+  category!: Category;
+
+  @BeforeCreate
+  @BeforeUpdate
+  static async validateFeaturedLimit(instance: Product) {
+    if (instance.is_featured) {
+      const featuredCount = await Product.count({ where: { is_featured: true } });
+      if (featuredCount >= 10) {
+        throw new Error("The number of featured products cannot exceed 10.");
+      }
+    }
+  }
+
+}
+
+--- End of Product.ts ---
+
+--- Start of Shipment.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany,
+  HasOne,
+  BeforeSave,
+} from "sequelize-typescript";
+import Order from "./Order";
+
+@Table({ tableName: "shipments", timestamps: true })
+export default class Shipment extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => Order)
+  @Column(DataType.INTEGER)
+  order_id!: number;
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  shipment_date!: Date;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  address!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  city!: string;
+
+  @Column({
+    type: DataType.STRING(20),
+    allowNull: false,
+  })
+  state!: string;
+
+  @Column({
+    type: DataType.STRING(50),
+    allowNull: false,
+  })
+  country!: string;
+
+  @Column({
+    type: DataType.STRING(10),
+    allowNull: false,
+  })
+  zip_code!: string;
+
+  @BelongsTo(() => Order)
+  order!: Order;
+}
+
+--- End of Shipment.ts ---
+
+--- Start of User.ts ---
+// src/models/User.ts
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  HasMany,
+  HasOne,
+  BeforeSave,
+} from "sequelize-typescript";
+import bcrypt from "bcrypt";
+import Order from "./Order";
+import Cart from "./Cart";
+import Wishlist from "./WishList";
+import UserAddress from "./UserAddress";
+
+@Table({ tableName: "users", timestamps: true })
+export default class User extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  first_name!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  last_name!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true,
+    },
+  })
+  email!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  password!: string;
+
+  @Column({
+    type: DataType.STRING(15),
+    allowNull: false,
+  })
+  phone_number!: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: true,
+  })
+  is_active!: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_admin : boolean
+
+  @BeforeSave
+  static async hashPassword(instance: User) {
+    if (instance.changed("password")) {
+      const salt = await bcrypt.genSalt(10);
+      instance.password = await bcrypt.hash(instance.password, salt);
+    }
+  }
+
+  @HasMany(() => Order)
+  orders!: Order[];
+
+  @HasOne(() => Cart)
+  cart!: Cart;
+
+  @HasOne(() => Wishlist)
+  wishlist!: Wishlist;
+
+  @HasMany(() => UserAddress)
+  addresses!: UserAddress[];
+}
+
+--- End of User.ts ---
+
+--- Start of UserAddress.ts ---
+// src/models/UserAddress.ts
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import User  from "./User";
+
+@Table({ tableName: "user_addresses", timestamps: true })
+export default class UserAddress extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  user_id!: number;
+
+  @Column(DataType.STRING(100))
+  address_line1!: string;
+
+  @Column(DataType.STRING(100))
+  address_line2?: string;
+
+  @Column(DataType.STRING(100))
+  city!: string;
+
+  @Column(DataType.STRING(100))
+  state!: string;
+
+  @Column(DataType.STRING(10))
+  zip_code!: string;
+
+  @Column(DataType.STRING(100))
+  country!: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_default!: boolean;
+
+  @BelongsTo(() => User)
+  user!: User;
+}
+
+--- End of UserAddress.ts ---
+
+--- Start of WishList.ts ---
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  PrimaryKey,
+  AutoIncrement,
+  ForeignKey,
+  BelongsTo,
+  HasMany
+} from "sequelize-typescript";
+import  User  from "./User";
+import  WishlistItem  from "./WishListItem";
+
+
+@Table({ tableName: "wishlists", timestamps: true })
+export default class Wishlist extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  id!: number;
+
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  user_id!: number;
+
+  @HasMany(() => WishlistItem)
+  items!: WishlistItem[];
+
+  @BelongsTo(() => User)
+  user!: User;
+
+  // Helper method to add a product
+  async addProduct(productId: number): Promise<void> {
+    const existingItem = this.items.find(item => item.product_id === productId);
+    if (!existingItem) {
+      await WishlistItem.create({ wishlist_id: this.id, product_id: productId });
+    }
+    await this.save();
+  }
+
+  // Helper method to remove a product
+  async removeProduct(productId: number): Promise<void> {
+    await WishlistItem.destroy({ where: { wishlist_id: this.id, product_id: productId } });
+    await this.save();
+  }
+}
+
+--- End of WishList.ts ---
+
+--- Start of WishListItem.ts ---
+import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    PrimaryKey,
+    AutoIncrement,
+    ForeignKey,
+    BelongsTo,
+    HasMany,
+  } from "sequelize-typescript";
+import  Wishlist  from "./WishList";
+
+@Table({ tableName: "wishlist_items", timestamps: true })
+export default class WishlistItem extends Model {
+  @PrimaryKey
+  @AutoIncrement
+  @Column(DataType.INTEGER)
+  wishlist_item_id!: number;
+
+  @ForeignKey(() => Wishlist)
+  @Column(DataType.INTEGER)
+  wishlist_id!: number;
+
+  @Column(DataType.INTEGER)
+  product_id!: number;
+
+  @BelongsTo(() => Wishlist)
+  wishlist!: Wishlist;
+}
+--- End of WishListItem.ts ---
+
