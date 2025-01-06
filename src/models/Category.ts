@@ -6,11 +6,13 @@ import {
   PrimaryKey,
   AutoIncrement,
   HasMany,
-} from 'sequelize-typescript';
-import  Product  from './Product';
+  BeforeCreate,
+  BeforeUpdate,
+} from "sequelize-typescript";
+import Product from "./Product";
 
 @Table({
-  tableName: 'categories',
+  tableName: "categories",
   timestamps: true,
 })
 export default class Category extends Model {
@@ -25,7 +27,45 @@ export default class Category extends Model {
   })
   name!: string;
 
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  description!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+    defaultValue: "https://dummyimage.com/1200x600/000/fff",
+  })
+  desktopImage!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+    defaultValue: "https://dummyimage.com/800x600/000/fff",
+  })
+  mobileImage!: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_featured!: boolean;
+
   @HasMany(() => Product)
   products!: Product[];
-}
 
+  @BeforeCreate
+  @BeforeUpdate
+  static async validateFeaturedLimit(instance: Category) {
+    if (instance.is_featured) {
+      const featuredCount = await Product.count({
+        where: { is_featured: true },
+      });
+      if (featuredCount >= 10) {
+        throw new Error("The number of featured products cannot exceed 10.");
+      }
+    }
+  }
+}

@@ -9,7 +9,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
-  BeforeUpdate
+  BeforeUpdate,
 } from "sequelize-typescript";
 import Category from "./Category";
 import OrderItem from "./OrderItem";
@@ -82,11 +82,12 @@ export default class Product extends Model {
   @BeforeUpdate
   static async validateFeaturedLimit(instance: Product) {
     if (instance.is_featured) {
-      const featuredCount = await Product.count({ where: { is_featured: true } });
+      const featuredCount = await Product.count({
+        where: { is_featured: true },
+      });
       if (featuredCount >= 10) {
         throw new Error("The number of featured products cannot exceed 10.");
       }
     }
   }
-
 }

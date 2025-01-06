@@ -82,7 +82,14 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({ message: "Login successful!", token });
+    res.cookie('token', token, {
+      httpOnly: true, // Prevents JavaScript from accessing the cookie
+      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS in production
+      sameSite: 'strict', // Prevents CSRF
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+  
+    res.json({ user });
   } catch (error) {
     res.status(500).json({ message: "Login failed.", error: (error as Error).message });
   }
@@ -91,7 +98,10 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
 // Fetch user profile
 export const getProfile: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const user = req.user; // User set in middleware
+    const user = await User.findByPk(req.user.id,{
+      attributes: { exclude: ["password"] },
+    });
+    // User set in middleware
     res.status(200).json({ message: "Profile fetched successfully!", user });
   } catch (error) {
     res.status(500).json({ message: "Error fetching profile.", error: (error as Error).message });
@@ -139,5 +149,18 @@ export const createAdmin: RequestHandler = async (req, res): Promise<void> => {
     res.status(201).json({ message: "Admin registered successfully!", user });
   } catch (error) {
     res.status(500).json({ message: "Registration failed.", error: (error as Error).message });
+  }
+};
+
+export const logoutUser: RequestHandler = async (req, res): Promise<void> => {
+  try {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+    res.status(200).json({ message: "User logged out successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Logout failed.", error: (error as Error).message });
   }
 };

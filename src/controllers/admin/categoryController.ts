@@ -17,15 +17,15 @@ export const addCategory: RequestHandler = async (req: Request, res: Response): 
   export const updateCategory: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const { name } = req.body;
-  
+      const updateFields = req.body;
+      if(updateFields.id) delete updateFields.id;
       const category = await Category.findByPk(id);
       if (!category) {
         res.status(404).json({ message: 'Category not found' });
         return;
       }
   
-      await category.update({ name });
+      await category.update(updateFields);
       res.json(category);
     } catch (error) {
       res.status(500).json({ message: 'Error updating category', error });

@@ -15,8 +15,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "pinky";
 
 // Authenticate token middleware
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+  const token = req.cookies.token;
 
   if (!token) {
     res.status(401).json({ message: "Authentication token is required" });
