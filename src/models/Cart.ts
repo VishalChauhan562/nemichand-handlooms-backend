@@ -7,10 +7,10 @@ import {
   AutoIncrement,
   ForeignKey,
   BelongsTo,
-  HasMany
+  HasMany,
 } from "sequelize-typescript";
-import  User  from "./User";
-import  CartItem  from "./CartItem";
+import User from "./User";
+import CartItem from "./CartItem";
 
 @Table({
   tableName: "carts",
@@ -34,11 +34,18 @@ export default class Cart extends Model {
 
   // Helper methods
   async addItem(productId: number, quantity: number = 1): Promise<void> {
-    const existingItem = this.items.find(
+    // First load cart items if not loaded
+    const cartItems = await CartItem.findAll({
+      where: { cart_id: this.id },
+    });
+
+    const existingItem = cartItems.find(
       (item) => item.product_id === productId
     );
+
     if (existingItem) {
       existingItem.quantity += quantity;
+      await existingItem.save();
     } else {
       await CartItem.create({
         cart_id: this.id,
@@ -46,7 +53,6 @@ export default class Cart extends Model {
         quantity,
       });
     }
-    await this.save();
   }
 
   async removeItem(productId: number): Promise<void> {

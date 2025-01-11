@@ -79,14 +79,14 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET || "pinky",
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     res.cookie('token', token, {
       httpOnly: true, // Prevents JavaScript from accessing the cookie
       secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS in production
       sameSite: 'strict', // Prevents CSRF
-      maxAge: 60 * 60 * 1000, // 1 hour
+      maxAge: 24 * 60 * 60 * 1000, // 1 hour
     });
   
     res.json({ user });

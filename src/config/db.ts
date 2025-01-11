@@ -9,7 +9,8 @@ const config = {
   user: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
+  port: parseInt(process.env.DB_PORT || '5000', 10),
+  database: process.env.DB_NAME || 'nemichand_handlooms', // Include the database name
 };
 
 // Database name

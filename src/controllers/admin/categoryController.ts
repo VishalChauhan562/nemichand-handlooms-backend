@@ -5,9 +5,9 @@ import Category from '../../models/Category';
 
 export const addCategory: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { name } = req.body;
+      const { name, desktopImage, mobileImage, description, featured } = req.body;
   
-      const category = await Category.create({ name });
+      const category = await Category.create({ name, desktopImage, mobileImage, description, featured });
       res.status(201).json(category);
     } catch (error) {
       res.status(500).json({ message: 'Error creating category', error });

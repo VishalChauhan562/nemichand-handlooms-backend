@@ -10,6 +10,7 @@ import {
   HasMany,
 } from "sequelize-typescript";
 import  Cart  from "./Cart";
+import Product from "./Product";
 
 // CartItem.ts
 @Table({ tableName: "cart_items", timestamps: true })
@@ -23,6 +24,7 @@ export default class CartItem extends Model {
   @Column(DataType.INTEGER)
   cart_id!: number;
 
+  @ForeignKey(() => Product)
   @Column(DataType.INTEGER)
   product_id!: number;
 
@@ -35,4 +37,7 @@ export default class CartItem extends Model {
 
   @BelongsTo(() => Cart)
   cart!: Cart;
+
+  @BelongsTo(() => Product)  // Add this
+  product!: Product;
 }

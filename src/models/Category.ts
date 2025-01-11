@@ -36,14 +36,12 @@ export default class Category extends Model {
   @Column({
     type: DataType.STRING(100),
     allowNull: false,
-    defaultValue: "https://dummyimage.com/1200x600/000/fff",
   })
   desktopImage!: string;
 
   @Column({
     type: DataType.STRING(100),
     allowNull: false,
-    defaultValue: "https://dummyimage.com/800x600/000/fff",
   })
   mobileImage!: string;
 

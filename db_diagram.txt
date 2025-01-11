@@ -8,10 +8,10 @@ import {
   AutoIncrement,
   ForeignKey,
   BelongsTo,
-  HasMany
+  HasMany,
 } from "sequelize-typescript";
-import  User  from "./User";
-import  CartItem  from "./CartItem";
+import User from "./User";
+import CartItem from "./CartItem";
 
 @Table({
   tableName: "carts",
@@ -35,11 +35,18 @@ export default class Cart extends Model {
 
   // Helper methods
   async addItem(productId: number, quantity: number = 1): Promise<void> {
-    const existingItem = this.items.find(
+    // First load cart items if not loaded
+    const cartItems = await CartItem.findAll({
+      where: { cart_id: this.id },
+    });
+
+    const existingItem = cartItems.find(
       (item) => item.product_id === productId
     );
+
     if (existingItem) {
       existingItem.quantity += quantity;
+      await existingItem.save();
     } else {
       await CartItem.create({
         cart_id: this.id,
@@ -47,7 +54,6 @@ export default class Cart extends Model {
         quantity,
       });
     }
-    await this.save();
   }
 
   async removeItem(productId: number): Promise<void> {
@@ -73,6 +79,7 @@ import {
   HasMany,
 } from "sequelize-typescript";
 import  Cart  from "./Cart";
+import Product from "./Product";
 
 // CartItem.ts
 @Table({ tableName: "cart_items", timestamps: true })
@@ -86,6 +93,7 @@ export default class CartItem extends Model {
   @Column(DataType.INTEGER)
   cart_id!: number;
 
+  @ForeignKey(() => Product)
   @Column(DataType.INTEGER)
   product_id!: number;
 
@@ -98,6 +106,9 @@ export default class CartItem extends Model {
 
   @BelongsTo(() => Cart)
   cart!: Cart;
+
+  @BelongsTo(() => Product)  // Add this
+  product!: Product;
 }
 
 --- End of CartItem.ts ---
@@ -111,11 +122,13 @@ import {
   PrimaryKey,
   AutoIncrement,
   HasMany,
-} from 'sequelize-typescript';
-import  Product  from './Product';
+  BeforeCreate,
+  BeforeUpdate,
+} from "sequelize-typescript";
+import Product from "./Product";
 
 @Table({
-  tableName: 'categories',
+  tableName: "categories",
   timestamps: true,
 })
 export default class Category extends Model {
@@ -130,10 +143,46 @@ export default class Category extends Model {
   })
   name!: string;
 
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: true,
+  })
+  description!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  desktopImage!: string;
+
+  @Column({
+    type: DataType.STRING(100),
+    allowNull: false,
+  })
+  mobileImage!: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_featured!: boolean;
+
   @HasMany(() => Product)
   products!: Product[];
-}
 
+  @BeforeCreate
+  @BeforeUpdate
+  static async validateFeaturedLimit(instance: Category) {
+    if (instance.is_featured) {
+      const featuredCount = await Product.count({
+        where: { is_featured: true },
+      });
+      if (featuredCount >= 10) {
+        throw new Error("The number of featured products cannot exceed 10.");
+      }
+    }
+  }
+}
 
 --- End of Category.ts ---
 
@@ -312,7 +361,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
-  BeforeUpdate
+  BeforeUpdate,
 } from "sequelize-typescript";
 import Category from "./Category";
 import OrderItem from "./OrderItem";
@@ -385,13 +434,14 @@ export default class Product extends Model {
   @BeforeUpdate
   static async validateFeaturedLimit(instance: Product) {
     if (instance.is_featured) {
-      const featuredCount = await Product.count({ where: { is_featured: true } });
+      const featuredCount = await Product.count({
+        where: { is_featured: true },
+      });
       if (featuredCount >= 10) {
         throw new Error("The number of featured products cannot exceed 10.");
       }
     }
   }
-
 }
 
 --- End of Product.ts ---

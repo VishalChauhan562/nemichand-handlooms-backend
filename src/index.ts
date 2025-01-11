@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes';
 import productRoutes from './routes/productRoutes'
 import categoryRoutes from './routes/categoryRoutes'
 import adminRoutes from './routes/admin'
+import cartRoutes from './routes/cartRoutes'
 const app = express();
 const PORT = process.env.PORT || 8081;
 
@@ -32,6 +33,7 @@ app.use('/api/users', userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cart", cartRoutes);
 
 // Start the server
 (async () => {
