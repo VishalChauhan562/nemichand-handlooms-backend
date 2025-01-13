@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 8081;
 
 app.use(
   cors({
-    origin: ["https://jolly-puffpuff-57e942.netlify.app/"],
+    origin: ["https://jolly-puffpuff-57e942.netlify.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: [
       "Content-Type",
