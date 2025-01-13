@@ -44,6 +44,12 @@ export default class Order extends Model {
   })
   total_price!: number;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  status: string;
+
   @BelongsTo(() => User)
   user!: User;
 

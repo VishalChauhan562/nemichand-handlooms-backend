@@ -54,6 +54,7 @@ export const getCart: RequestHandler = async (
     }));
 
     const cart_response = {
+      cart_id: cart.id,
       data: cartItems,
       total: cartItems.length,
       user_id: userId,

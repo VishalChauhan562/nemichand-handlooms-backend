@@ -11,7 +11,7 @@ import {
   HasOne,
   BeforeSave,
 } from "sequelize-typescript";
-import Order  from "./Order";
+import Order from "./Order";
 
 @Table({ tableName: "payments", timestamps: true })
 export default class Payment extends Model {
@@ -32,10 +32,22 @@ export default class Payment extends Model {
   payment_date!: Date;
 
   @Column({
-    type: DataType.ENUM("CARD", "UPI", "NETBANKING", "CASH"),
+    type: DataType.ENUM("CARD", "UPI", "NETBANKING", "CASH", "razorpay"),
     allowNull: false,
   })
   payment_method!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  razorpay_order_id!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  status!: string;
 
   @Column({
     type: DataType.DECIMAL(10, 2),
