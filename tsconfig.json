@@ -3,11 +3,17 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
-    "target": "ES2021",
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "strict": true
-  }
+    "target": "ES2021",               // JavaScript version target
+    "module": "commonjs",             // Module system for Node.js
+    "esModuleInterop": true,          // Enable compatibility with ES modules
+    "moduleResolution": "node",       // Resolve modules like Node.js
+    "strict": true,                   // Enable all strict type-checking options
+    "outDir": "./dist",               // Output directory for compiled files
+    "rootDir": "./src",               // Root directory of TypeScript source files
+    "sourceMap": true,                // Generate source maps for debugging
+    "skipLibCheck": true,             // Skip type-checking for declaration files
+    "forceConsistentCasingInFileNames": true // Enforce consistent file naming
+  },
+  "include": ["src/**/*"],             // Include all files in the src folder
+  "exclude": ["node_modules", "dist"]  // Exclude node_modules and dist folders
 }
-
