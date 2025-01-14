@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 8081;
 
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://localhost:3000", "https://lighthearted-sprite-b8b032.netlify.app/"],
+    origin: ["http://localhost:3001", "http://localhost:3000", "https://lighthearted-sprite-b8b032.netlify.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: [
       "Content-Type",
