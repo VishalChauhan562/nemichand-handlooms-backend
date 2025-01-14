@@ -17,6 +17,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "pinky";
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.cookies.token;
 
+  console.log("cookies===>",JSON.stringify(req.cookies))
+
   if (!token) {
     res.status(401).json({ message: "Authentication token is required" });
     return;

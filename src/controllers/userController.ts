@@ -16,7 +16,9 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
     }
 
     if (password.length < 8) {
-      res.status(400).json({ message: "Password must be at least 8 characters long." });
+      res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long." });
       return;
     }
 
@@ -26,7 +28,9 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
     });
 
     if (existingUser) {
-      res.status(400).json({ message: "Email or phone number already in use." });
+      res
+        .status(400)
+        .json({ message: "Email or phone number already in use." });
       return;
     }
 
@@ -41,7 +45,12 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
 
     res.status(201).json({ message: "User registered successfully!", user });
   } catch (error) {
-    res.status(500).json({ message: "Registration failed.", error: (error as Error).message });
+    res
+      .status(500)
+      .json({
+        message: "Registration failed.",
+        error: (error as Error).message,
+      });
   }
 };
 
@@ -49,11 +58,13 @@ export const registerUser: RequestHandler = async (req, res): Promise<void> => {
 export const loginUser: RequestHandler = async (req, res): Promise<void> => {
   try {
     const { identifier, password } = req.body;
-     // Identifier can be email or phone number
+    // Identifier can be email or phone number
 
     // Validate input
     if (!identifier || !password) {
-      res.status(400).json({ message: "Email/phone and password are required." });
+      res
+        .status(400)
+        .json({ message: "Email/phone and password are required." });
       return;
     }
 
@@ -62,7 +73,6 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
       where: { [Op.or]: [{ email: identifier }, { phone_number: identifier }] },
     });
 
-    
     if (!user) {
       res.status(404).json({ message: "User not found." });
       return;
@@ -82,34 +92,44 @@ export const loginUser: RequestHandler = async (req, res): Promise<void> => {
       { expiresIn: "24h" }
     );
 
-    res.cookie('token', token, {
+    const cookieBase: any = {
       httpOnly: true, // Prevents JavaScript from accessing the cookie
-      secure: process.env.NODE_ENV === 'production', // Ensures cookie is sent over HTTPS in production
-      sameSite: 'strict', // Prevents CSRF
+      secure: process.env.NODE_ENV === "production", // Ensures cookie is sent over HTTPS in production
+      sameSite: "none", // Prevents CSRF
       maxAge: 24 * 60 * 60 * 1000, // 1 hour
-    });
-  
+    };
+
+    console.log("cookieBase===>", cookieBase);
+
+    res.cookie("token", token, cookieBase);
+
     res.json({ user });
   } catch (error) {
-    res.status(500).json({ message: "Login failed.", error: (error as Error).message });
+    res
+      .status(500)
+      .json({ message: "Login failed.", error: (error as Error).message });
   }
 };
 
 // Fetch user profile
 export const getProfile: RequestHandler = async (req, res): Promise<void> => {
   try {
-    const user = await User.findByPk(req.user.id,{
+    const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ["password"] },
     });
     // User set in middleware
     res.status(200).json({ message: "Profile fetched successfully!", user });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching profile.", error: (error as Error).message });
+    res
+      .status(500)
+      .json({
+        message: "Error fetching profile.",
+        error: (error as Error).message,
+      });
   }
 };
 
 // Admin
-
 
 export const createAdmin: RequestHandler = async (req, res): Promise<void> => {
   try {
@@ -122,7 +142,9 @@ export const createAdmin: RequestHandler = async (req, res): Promise<void> => {
     }
 
     if (password.length < 8) {
-      res.status(400).json({ message: "Password must be at least 8 characters long." });
+      res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long." });
       return;
     }
 
@@ -132,7 +154,9 @@ export const createAdmin: RequestHandler = async (req, res): Promise<void> => {
     });
 
     if (existingUser) {
-      res.status(400).json({ message: "Email or phone number already in use." });
+      res
+        .status(400)
+        .json({ message: "Email or phone number already in use." });
       return;
     }
 
@@ -143,24 +167,31 @@ export const createAdmin: RequestHandler = async (req, res): Promise<void> => {
       phone_number,
       first_name,
       last_name,
-      is_admin : true
+      is_admin: true,
     });
 
     res.status(201).json({ message: "Admin registered successfully!", user });
   } catch (error) {
-    res.status(500).json({ message: "Registration failed.", error: (error as Error).message });
+    res
+      .status(500)
+      .json({
+        message: "Registration failed.",
+        error: (error as Error).message,
+      });
   }
 };
 
 export const logoutUser: RequestHandler = async (req, res): Promise<void> => {
   try {
-    res.clearCookie('token', {
+    res.clearCookie("token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
     res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
-    res.status(500).json({ message: "Logout failed.", error: (error as Error).message });
+    res
+      .status(500)
+      .json({ message: "Logout failed.", error: (error as Error).message });
   }
 };
